@@ -1,0 +1,42 @@
+{
+  "name": "switchblade",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node --experimental-modules index.mjs",
+    "watch:server": "nodemon --experimental-modules index.mjs",
+    "watch:client": "webpack -w"
+  },
+  "dependencies": {
+    "koa": "^2.5.3",
+    "koa-compress": "^3.0.0",
+    "koa-conditional-get": "^2.0.0",
+    "koa-mount": "^4.0.0",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
+    "koa-views": "^6.1.4",
+    "node-fetch": "^2.2.0",
+    "pug": "^2.0.3",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1",
+    "socket.io-p2p": "^2.2.0",
+    "socket.io-p2p-server": "^1.2.0",
+    "styled-components": "^3.4.9",
+    "uuid": "^3.3.2",
+    "webpack": "^4.20.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/preset-react": "^7.0.0",
+    "babel": "^6.23.0",
+    "babel-loader": "^8.0.4",
+    "babel-preset-react": "^6.24.1",
+    "css-loader": "^1.0.0",
+    "mini-css-extract-plugin": "^0.4.3",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
+    "style-loader": "^0.23.0",
+    "webpack-cli": "^3.1.2"
+  }
+}
