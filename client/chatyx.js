@@ -11,7 +11,7 @@ export default class Chatyx extends PureComponent {
 
 	constructor( props ) {
 		super( props )
-		const socket = io( 'http://localhost:3001' )
+		const socket = io()
 		this.socket = new P2P( socket, opts, () => {
 			console.log( 'Hello from RTC' )
 		} )
