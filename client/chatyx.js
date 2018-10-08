@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react'
 import P2P from 'socket.io-p2p'
 import io from 'socket.io-client'
+import Message from './components/message'
 
 const opts = {
 	numClients: 10,
@@ -22,6 +23,20 @@ export default class Chatyx extends PureComponent {
 		this.sendMessage = this.sendMessage.bind( this )
 		this.handleFile = this.handleFile.bind( this )
 
+	}
+
+	pushMessage( message, self = false ) {
+		this.setState( ( state, props ) => {
+			return {
+				messages: [
+					...state.messages,
+					{
+						...message,
+						self,
+					}
+				]
+			}
+		} )
 	}
 
 	componentDidMount() {
@@ -53,23 +68,58 @@ export default class Chatyx extends PureComponent {
 
 	sendMessage( e ) {
 		const { value } = e.currentTarget
-		e.currentTarget.value = ''
-		console.log( 'sending', value )
-		this.socket.emit( 'peer-msg', {
-			text: value,
-			attachments: [],
-		} )
+		if ( value ) {
+
+			e.currentTarget.value = ''
+
+			const message = {
+				message: value,
+				attachments: [],
+				date: new Date(),
+			}
+
+			this.socket.emit( 'peer-msg', message )
+			this.pushMessage( message , true )
+
+		}
 	}
 
 	handleFile( e ) {
-		Chatyx.getBase64( e.currentTarget.files[0] )
+
+		const Promises = []
+		for( let i = 0; i < e.currentTarget.files.length; i++){
+			Promises.push( Chatyx.getBase64( e.currentTarget.files[ i ] ) )
+		}
+		Promise.all( Promises )
 		.then( ( data ) => {
-			this.socket.emit( 'peer-msg', {
-				text: '',
-				attachments: [ data ],
-			} )
+
+			const message = {
+				message: '',
+				attachments: data,
+				date: new Date(),
+			}
+
+			this.socket.emit( 'peer-msg', message )
+
+
+			this.pushMessage( {
+				...message,
+				attachments: data.map( file => Chatyx.getBlobFromFile( file ) )
+			}, true )
+
+
 		} )
-		// const { value } = e.currentTarget
+	}
+
+	static getBlobFromFile( { type, data } ) {
+		const arrayBufferView = new Uint8Array( data )
+		const blob = new Blob( [ arrayBufferView ], { type } )
+		const urlCreator = window.URL || window.webkitURL
+		const imageUrl = urlCreator.createObjectURL( blob )
+		return {
+			data: imageUrl,
+			type,
+		}
 	}
 
 	static getBase64( file ) {
@@ -78,17 +128,16 @@ export default class Chatyx extends PureComponent {
 			reader.readAsArrayBuffer( file )
 			reader.onload = () => {
 				const arrayBuffer = reader.result
+				// size: file.size,
+				// name: file.name,
 				resolve(
 					{
-						name: file.name,
 						type: file.type,
-						size: file.size,
 						data: arrayBuffer
 					}
 				)
 			}
 			reader.onerror = () => {
-				alert( 'nein' )
 				reject()
 			}
 
@@ -104,37 +153,12 @@ export default class Chatyx extends PureComponent {
 				<ul>
 					{
 						messages.map( ( message, key ) => {
-							return <li key={ key }>{ message.text } { message.attachments.map( ( attachment ) => {
-								console.log( attachment )
-								switch( attachment.type ){
-									case 'image/png':
-									case 'image/jpg':
-									case 'image/gif':
-										return <img src={ attachment.data } />
-									case 'audio/mp3':
-										return (
-											<audio controls>
-												<source src={ attachment.data } type={ attachment.type } />
-											</audio>
-										)
-									case 'video/mp4':
-									case 'video/quicktime':
-									case 'video/x-quicktime':
-										return (
-											<video controls>
-												<source src={ attachment.data } type={ attachment.type } />
-											</video>
-										)
-									default:
-										return null
-
-								}
-							} ) } </li>
+							return <Message { ...message } key={ key } />
 						} )
 					}
 				</ul>
 				<textarea onBlur={ this.sendMessage } />
-				<input type='file' onChange={ this.handleFile } />
+				<input type='file' accept='image/jpeg,image/png,image/gif,video/mp4,audio/mp3' onChange={ this.handleFile } multiple/>
 				<img id="wham" src="#" />
 			</div>
 		)

@@ -13,6 +13,6 @@ app.use( views )
 app.use( router )
 
 const Server = http.createServer( app.callback() )
-Server.listen( 3001, () => {
+Server.listen( process.env.PORT || 3001, () => {
 	sockets( Server )
 } )
